@@ -37,7 +37,7 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   if (DEBUG_MODE) {
     checkpoint = 0;
   }
-
+  console.log(referer);
   // Generate or retrieve the key
   const keyExpiration = cookies.keyExpiration ? parseInt(cookies.keyExpiration, 10) : 0;
   if (!cookies.key || now > keyExpiration) {
