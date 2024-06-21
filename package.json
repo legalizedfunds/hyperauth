@@ -2,7 +2,7 @@
   "name": "my-next-project",
   "version": "1.0.0",
   "scripts": {
-    "npm install express @types/express typescript ts-node --save-dev"
+    "start": "npm install express @types/express typescript ts-node --save-dev"
   },
   "dependencies": {
     "express": "^4.17.2"
