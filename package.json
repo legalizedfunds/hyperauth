@@ -2,20 +2,20 @@
   "name": "my-express-api",
   "version": "1.0.0",
   "description": "Serverless Express API using TypeScript",
-  "main": "dist/index.js",  // Entry point after TypeScript compilation
+  "main": "dist/index.js", 
   "scripts": {
-    "build": "tsc",         // Compile TypeScript to JavaScript
-    "start": "node dist/index.js",  // Start script for local development
-    "deploy": "vercel --prod"  // Deployment script using Vercel CLI
+    "build": "tsc",         
+    "start": "node dist/index.js", 
+    "deploy": "vercel --prod" 
   },
   "dependencies": {
-    "express": "^4.17.2",              // Express.js framework
-    "express-session": "^1.17.2",      // Session middleware for Express
-    "crypto": "^1.0.1",                // Crypto module for hashing
-    "@types/express": "^4.17.13",      // TypeScript type definitions for Express
-    "typescript": "^4.5.4"             // TypeScript compiler
+    "express": "^4.17.2",              
+    "express-session": "^1.17.2",   
+    "crypto": "^1.0.1",                
+    "@types/express": "^4.17.13",      
+    "typescript": "^4.5.4"             
   },
   "devDependencies": {
-    "@types/node": "^16.11.16"         // TypeScript type definitions for Node.js (typically needed)
+    "@types/node": "^16.11.16"         
   }
 }
