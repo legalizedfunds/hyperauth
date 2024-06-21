@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { headers } from 'next/headers';
 import crypto from 'crypto';
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -14,7 +15,7 @@ function generateTimestampHash(): string {
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
   const referer = req.headers.referer
-  console.log(req.headers.get(referer));
+  console.log(headers().get('referer'));
   const now = Date.now();
   const cookies = req.cookies;
 
