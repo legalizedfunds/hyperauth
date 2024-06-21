@@ -15,7 +15,7 @@ function generateTimestampHash(): string {
 export default (req: NextApiRequest, res: NextApiResponse) => {
   const referer = req.headers.referer || '';
   const now = Date.now();
-  const session = req.cookies || {};
+  const cookies = req.cookies || {};
 
   // Check if the referer is blacklisted
   if (
@@ -40,12 +40,18 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // Generate or retrieve the key
-  if (!session.key || now > session.keyExpiration) {
-    session.key = generateTimestampHash();
-    session.keyExpiration = now + ONE_DAY_IN_MS; // Key TTL of 24 hours
+  const keyExpiration = cookies.keyExpiration ? parseInt(cookies.keyExpiration, 10) : 0;
+  if (!cookies.key || now > keyExpiration) {
+    const newKey = generateTimestampHash();
+    const newExpiration = now + ONE_DAY_IN_MS;
+    res.setHeader('Set-Cookie', [
+      `key=${newKey}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`,
+      `keyExpiration=${newExpiration.toString()}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`
+    ]);
+    KEY = newKey;
+  } else {
+    KEY = cookies.key;
   }
 
-  KEY = session.key;
-  res.setHeader('Set-Cookie', `key=${session.key}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly, Secure`);
   res.status(200).send(KEY);
 };
