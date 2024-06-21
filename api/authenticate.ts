@@ -1,31 +1,22 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import crypto from 'crypto';
+import { Request, Response } from 'express';
+import { generateTimestampHash } from '../utils/local-ip';
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-let KEY = '';
 
-function generateTimestampHash(): string {
-  const timestamp = Date.now().toString();
-  return crypto.createHash('sha256').update(timestamp).digest('hex');
-}
+export const authenticateHandler = (req: Request, res: Response) => {
+  const hash = req.query.hash as string | undefined;
+  if (!hash || !req.session.key || Date.now() >= req.session.keyExpiration) {
+    return res.status(403).send('Forbidden');
+  }
 
-export default (req: NextApiRequest, res: NextApiResponse) => {
-  const cookies = req.cookies || {};
-  const hash = req.query.hash as string;
-
-  // Parse the expiration time from cookies
-  const keyExpiration = cookies.keyExpiration ? parseInt(cookies.keyExpiration, 10) : 0;
-
-  if (hash == KEY && Date.now() < keyExpiration) {
-    res.status(200).send("Authentication successful");
+  if (hash === req.session.key) {
+    // Authentication successful
+    res.send('Authentication successful');
     // Optionally, reset the key after successful authentication
-    const newKey = generateTimestampHash();
-    const newExpiration = Date.now() + ONE_DAY_IN_MS;
-    res.setHeader('Set-Cookie', [
-      `key=${newKey}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`,
-      `keyExpiration=${newExpiration.toString()}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`
-    ]);
+    req.session.key = generateTimestampHash();
+    req.session.keyExpiration = Date.now() + ONE_DAY_IN_MS;
   } else {
-    res.status(403).send("Authentication failed");
+    // Authentication failed
+    res.status(403).send('Authentication failed');
   }
 };
