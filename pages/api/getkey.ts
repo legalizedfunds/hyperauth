@@ -13,7 +13,7 @@ function generateTimestampHash(): string {
 }
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  const referer = req.headers.referer;
+  const referer = req.headers.referer
   const now = Date.now();
   const cookies = req.cookies;
 
