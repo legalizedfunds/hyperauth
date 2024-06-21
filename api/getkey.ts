@@ -1,34 +1,27 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { headers } from 'next/headers';
-import crypto from 'crypto';
+import { Request, Response } from 'express';
+import { generateTimestampHash } from '../utils/local-ip';
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const DEBUG_MODE = true;
-const BLACKLIST = ["bypass.city"];
+
 let checkpoint = 0;
 let KEY = '';
 
-function generateTimestampHash(): string {
-  const timestamp = Date.now().toString();
-  return crypto.createHash('sha256').update(timestamp).digest('hex');
-}
-
-export default (req: NextApiRequest, res: NextApiResponse) => {
-  const referer = req.headers.referer
-  console.log(headers().get('referer'));
-  const now = Date.now();
-  const cookies = req.cookies;
+export const getKeyHandler = (req: Request, res: Response) => {
+  const referer = req.get('Referer');
+  console.log(referer);
 
   // Check if the referer is blacklisted
-  if (referer == "undefined" || referer && !referer.includes("linkvertise.com") || referer && referer.includes("bypass.city")) {
-    console.log(referer);
-    res.status(403).send("phuck u");
+  if (
+    (referer && !referer.includes('linkvertise.com')) ||
+    (referer && referer.includes('bypass.city'))
+  ) {
+    return res.status(403).send('Forbidden');
   }
 
   // Check if the checkpoint is set
   if (checkpoint !== 0) {
-    console.log(referer);
-    res.status(403).send("phuck u");
+    return res.status(403).send('Forbidden');
   }
 
   checkpoint = 1;
@@ -37,20 +30,14 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   if (DEBUG_MODE) {
     checkpoint = 0;
   }
-  console.log(referer);
-  // Generate or retrieve the key
-  const keyExpiration = cookies.keyExpiration ? parseInt(cookies.keyExpiration, 10) : 0;
-  if (!cookies.key || now > keyExpiration) {
-    const newKey = generateTimestampHash();
-    const newExpiration = now + ONE_DAY_IN_MS;
-    res.setHeader('Set-Cookie', [
-      `key=${newKey}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`,
-      `keyExpiration=${newExpiration.toString()}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`
-    ]);
-    KEY = newKey;
-  } else {
-    KEY = cookies.key;
-  }
 
-  res.status(200).send(KEY);
+  // Generate or retrieve the key (simulated for demo)
+  KEY = generateTimestampHash();
+
+  // Send the key if it exists, otherwise send an error message
+  if (KEY) {
+    return res.status(200).json({ key: KEY });
+  } else {
+    return res.status(500).send('Internal Server Error');
+  }
 };
