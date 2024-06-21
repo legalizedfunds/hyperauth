@@ -5,3 +5,4 @@ declare module 'express-ipfilter' {
 
   export { IpFilter };
 }
+
