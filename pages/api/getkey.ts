@@ -1,43 +1,49 @@
 import { Request, Response } from 'express';
-import { generateTimestampHash } from '../utils/local-ip';
+import session from 'express-session';
+import crypto from 'crypto';
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const DEBUG_MODE = true;
 
-let checkpoint = 0;
-let KEY = '';
+// Session middleware
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-export const getKeyHandler = (req: Request, res: Response) => {
+// Middleware to ensure key existence and validity
+export default async (req: Request, res: Response) => {
+  const now = Date.now();
+  const keyExpiration = req.session.keyExpiration || 0;
+
+  if (!req.session.key || now > keyExpiration) {
+    req.session.key = generateTimestampHash();
+    req.session.keyExpiration = now + ONE_DAY_IN_MS; // Key TTL of 24 hours
+  }
+
   const referer = req.get('Referer');
   console.log(referer);
+  const ipAddress = req.ip;
+  console.log(`Client IP Address: ${ipAddress}`);
 
   // Check if the referer is blacklisted
-  if (
-    (referer && !referer.includes('linkvertise.com')) ||
-    (referer && referer.includes('bypass.city'))
-  ) {
+  if ((referer && !referer.includes('linkvertise.com')) || (referer && referer.includes('bypass.city'))) {
     return res.status(403).send('Forbidden');
   }
 
-  // Check if the checkpoint is set
-  if (checkpoint !== 0) {
-    return res.status(403).send('Forbidden');
-  }
-
-  checkpoint = 1;
-
-  // If in debug mode, reset the checkpoint
-  if (DEBUG_MODE) {
-    checkpoint = 0;
-  }
-
-  // Generate or retrieve the key (simulated for demo)
-  KEY = generateTimestampHash();
+  // Get the key from the session
+  const KEY = req.session.key;
 
   // Send the key if it exists, otherwise send an error message
   if (KEY) {
-    return res.status(200).json({ key: KEY });
+    res.send(KEY);
   } else {
-    return res.status(500).send('Internal Server Error');
+    res.status(500).send('Internal Server Error');
   }
 };
+
+// Function to generate a hash of the current timestamp
+function generateTimestampHash(): string {
+  const timestamp = Date.now().toString();
+  return crypto.createHash('sha256').update(timestamp).digest('hex');
+}
