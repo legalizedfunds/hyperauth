@@ -13,18 +13,20 @@ function generateTimestampHash(): string {
 }
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  const referer = context.req.headers.referer;
+  const referer = req.headers.referer;
   const now = Date.now();
   const cookies = req.cookies;
 
   // Check if the referer is blacklisted
   if (referer && !referer.includes("linkvertise.com") || referer && referer.includes("bypass.city")) {
+    console.log(referer);
     res.status(403).send("phuck u");
     return;
   }
 
   // Check if the checkpoint is set
   if (checkpoint !== 0) {
+    console.log(referer);
     res.status(403).send("phuck u");
     return;
   }
