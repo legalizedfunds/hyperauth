@@ -21,14 +21,12 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   if (referer == "undefined" || referer && !referer.includes("linkvertise.com") || referer && referer.includes("bypass.city")) {
     console.log(referer);
     res.status(403).send("phuck u");
-    return;
   }
 
   // Check if the checkpoint is set
   if (checkpoint !== 0) {
     console.log(referer);
     res.status(403).send("phuck u");
-    return;
   }
 
   checkpoint = 1;
