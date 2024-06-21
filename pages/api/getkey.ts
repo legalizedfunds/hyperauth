@@ -18,7 +18,7 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
   const cookies = req.cookies;
 
   // Check if the referer is blacklisted
-  if (referer === "undefined" || referer && !referer.includes("linkvertise.com") || referer && referer.includes("bypass.city")) {
+  if (referer == "undefined" || referer && !referer.includes("linkvertise.com") || referer && referer.includes("bypass.city")) {
     console.log(referer);
     res.status(403).send("phuck u");
     return;
