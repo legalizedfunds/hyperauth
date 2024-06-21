@@ -10,15 +10,21 @@ function generateTimestampHash(): string {
 }
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  const session = req.cookies || {};
+  const cookies = req.cookies || {};
   const hash = req.query.hash as string;
 
-  if (hash == KEY && Date.now() < (session.keyExpiration || 0)) {
+  // Parse the expiration time from cookies
+  const keyExpiration = cookies.keyExpiration ? parseInt(cookies.keyExpiration, 10) : 0;
+
+  if (hash == KEY && Date.now() < keyExpiration) {
     res.status(200).send("Authentication successful");
     // Optionally, reset the key after successful authentication
-    session.key = generateTimestampHash();
-    session.keyExpiration = Date.now() + ONE_DAY_IN_MS;
-    res.setHeader('Set-Cookie', `key=${session.key}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly, Secure`);
+    const newKey = generateTimestampHash();
+    const newExpiration = Date.now() + ONE_DAY_IN_MS;
+    res.setHeader('Set-Cookie', [
+      `key=${newKey}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`,
+      `keyExpiration=${newExpiration.toString()}; Max-Age=${ONE_DAY_IN_MS}; HttpOnly; Secure`
+    ]);
   } else {
     res.status(403).send("Authentication failed");
   }
