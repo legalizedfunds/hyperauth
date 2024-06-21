@@ -1,22 +1,42 @@
 import { Request, Response } from 'express';
-import { generateTimestampHash } from '../utils/local-ip';
+import session from 'express-session';
+import crypto from 'crypto';
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-export const authenticateHandler = (req: Request, res: Response) => {
-  const hash = req.query.hash as string | undefined;
-  if (!hash || !req.session.key || Date.now() >= req.session.keyExpiration) {
-    return res.status(403).send('Forbidden');
+// Session middleware
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+// Middleware to ensure key existence and validity
+export default async (req: Request, res: Response) => {
+  const now = Date.now();
+  const keyExpiration = req.session.keyExpiration || 0;
+
+  if (!req.session.key || now > keyExpiration) {
+    req.session.key = generateTimestampHash();
+    req.session.keyExpiration = now + ONE_DAY_IN_MS; // Key TTL of 24 hours
   }
 
-  if (hash === req.session.key) {
-    // Authentication successful
+  const { hash } = req.query;
+  const KEY = req.session.key;
+
+  // Validate hash and session key
+  if (hash === KEY && Date.now() < req.session.keyExpiration) {
     res.send('Authentication successful');
     // Optionally, reset the key after successful authentication
     req.session.key = generateTimestampHash();
     req.session.keyExpiration = Date.now() + ONE_DAY_IN_MS;
   } else {
-    // Authentication failed
-    res.status(403).send('Authentication failed');
+    res.status(403).send('Forbidden');
   }
 };
+
+// Function to generate a hash of the current timestamp
+function generateTimestampHash(): string {
+  const timestamp = Date.now().toString();
+  return crypto.createHash('sha256').update(timestamp).digest('hex');
+}
