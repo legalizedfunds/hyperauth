@@ -7,7 +7,7 @@ const BLACKLIST = ['bypass.city', 'bypass', 'undefined'];
 const ALLOWLIST = ['linkvertise.com'];
 
 app.get('/', (req, res) => {
-    res.send('henlo')
+    res.status(200).json("key: 3000")
 })
 
 app.listen(PORT, () => {
